@@ -69,7 +69,7 @@ def do_buy_order(parameters):
             price = price // 10000
             cur = db.cursor()
             entry = cur.execute("select * from Data Where (id = ? and quality = ?)", (itemid,quality)).fetchone()
-            print(entry)
+            # print(entry)
             if entry is None:
                 cur.execute("insert into Data(id,quality,buy_max,buy_max_datetime,enchant) values(?,?,?,?,?)", (itemid,quality, price, datetime.now(timezone.utc),enchant))
                 db.commit()
