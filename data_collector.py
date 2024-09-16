@@ -41,13 +41,13 @@ def do_sell_order(parameters):
             itemid, price, quality, enchant = i
             price = price // 10000
             cur = db.cursor()
-            entry = cur.execute("select * from Data Where (id = ? and quality = ? and enchant = ?)", (itemid,quality, enchant)).fetchone()
+            entry = cur.execute("select * from Data Where (id = ? and quality = ?)", (itemid,quality)).fetchone()
             if entry is None:
                 cur.execute("insert into Data(id,quality,sell_min,sell_min_datetime,enchant) values(?,?,?,?,?)", (itemid,quality, price, datetime.now(timezone.utc),enchant))
                 db.commit()
                 print(f"[INFO:{PLAYER_LOCATION}] Add {itemid} to database")
             else:
-                if entry[2] is None or price < entry[2]:
+                if entry[3] is None or price < entry[3]:
                     cur.execute("update Data set sell_min = ?, sell_min_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
                     print(f"[INFO:{PLAYER_LOCATION}] [SELL_ORDER] Update price {entry[0]} from {entry[2] or 0} to {price}")
                     db.commit()
@@ -68,13 +68,14 @@ def do_buy_order(parameters):
             itemid, price, quality, enchant = i
             price = price // 10000
             cur = db.cursor()
-            entry = cur.execute("select * from Data Where (id = ? and quality = ? and enchant = ?)", (itemid,quality, enchant)).fetchone()
+            entry = cur.execute("select * from Data Where (id = ? and quality = ?)", (itemid,quality)).fetchone()
+            print(entry)
             if entry is None:
                 cur.execute("insert into Data(id,quality,buy_max,buy_max_datetime,enchant) values(?,?,?,?,?)", (itemid,quality, price, datetime.now(timezone.utc),enchant))
                 db.commit()
                 print(f"[INFO:{PLAYER_LOCATION}] Add {itemid} to database")
             else:
-                if entry[3] is None or price > entry[3]:
+                if entry[4] is None or price > entry[4]:
                     cur.execute("update Data set buy_max = ?, buy_max_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
                     print(f"[INFO:{PLAYER_LOCATION}] [BUY_ORDER] Update price {entry[0]} from {entry[3] or 0} to {price}")
                     db.commit()
