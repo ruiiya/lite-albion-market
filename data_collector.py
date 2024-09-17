@@ -142,12 +142,14 @@ def main():
                     conn.close()
 
         if a[0] == "set":
-            if len(a) < 3:
+            if len(a) < 2:
                 print("[ERROR] set: Unkown command")
             elif a[1] == "tier":
                 filters = " ".join(a[2::])
             elif a[1] == "quality":
                 qualities = [int(i) for i in a[2::]]
+                if len(qualities) == 0:
+                    qualities = [1,2,3,4,5]
             elif a[1] == "name":
                 # TODO: add filters by name
                 pass
