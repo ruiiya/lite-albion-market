@@ -6,15 +6,6 @@ import os
 
 pd.set_option('future.no_silent_downcasting', True)
 
-shortname = {
-    "bw": "bridgewatch",
-    "tf": "thetfort",
-    "ml": "martlock",
-    "lh": "lymhurst",
-    "fs": "fortsterling",
-    "cl": "caerleon",
-}
-
 items = pd.read_csv("items.csv")
 
 def re_tiers(tiers):
@@ -53,8 +44,8 @@ def prepare_bm(filters, qualities):
         df = df.sort_values(by=["id","quality"])
         df = df[df.quality.isin(qualities)]
         df = df[df["id"].apply(regex_filter, filters = filters)]
-        sell = df.groupby("id")["sell_min"].mean().to_frame()
-        buy = df.groupby("id")["buy_max"].mean().to_frame()
+        sell = df.groupby("id")["sell_min"].min().to_frame()
+        buy = df.groupby("id")["buy_max"].min().to_frame()
         df = sell.merge(df[["id", "enchant", "sell_min", "buy_max"]], on="id", suffixes=("", "_y")).drop("sell_min_y", axis=1).drop_duplicates()
         df = buy.merge(df[["id", "enchant", "sell_min", "buy_max"]], on="id", suffixes=("", "_y")).drop("buy_max_y", axis=1).drop_duplicates()
         return df
@@ -62,10 +53,6 @@ def prepare_bm(filters, qualities):
         raise Exception("BlackMarket.db does not exists")
 
 def prepare_royal(location, filters, qualities):
-    if location in shortname.keys():
-        location = shortname[location]
-    if location not in shortname.values():
-        raise Exception(f"unkown location")
     if os.path.exists(f"{location}.db"):
         conn = sqlite3.connect(f"{location}.db", isolation_level=None, detect_types=sqlite3.PARSE_COLNAMES)
         df = pd.read_sql_query("SELECT * FROM Data", conn)
@@ -87,6 +74,7 @@ def compare(bm_df, royal_df):
     merge["diff_sell_order"] = (merge["sell_min_bm"] * (1-0.04-0.025)) / merge["sell_min_rl"]
     merge["quick_sell_desired"] = (merge["buy_max_bm"] / (1.3) * (1 - 0.04)).fillna(0).astype(np.int64, errors='ignore')
     merge["sell_order_desired"] = (merge["sell_min_bm"] / (1.3) * (1 - 0.065)).fillna(0).astype(np.int64, errors='ignore')
+    merge[["sell_min_rl", "sell_min_bm", "buy_max_bm"]] = merge[["sell_min_rl", "sell_min_bm", "buy_max_bm"]].fillna(0).astype(np.int64, errors='ignore')
     merge = merge[merge[["diff_sell_order", "diff_quick_sell"]].notna().any(axis=1)]
     merge = items.merge(merge, how = "right", on = "id")
 
