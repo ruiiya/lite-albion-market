@@ -133,12 +133,13 @@ def main():
             ls = list(filter(None,[shortname.get(l, l) for l in a[1::]]))
             if len(ls) == 0:
                 ls = locations.values()
-            if db:
-                db.close()
-                PLAYER_LOCATION, db = None, None
             for l in ls:
                 if os.path.exists(f"{l}.db"):
-                    os.remove(f"{l}.db")
+                    conn = sqlite3.connect(f"{l}.db")
+                    cursor = conn.cursor()
+                    cursor.execute("delete from Data")
+                    conn.commit()
+                    conn.close()
 
         if a[0] == "set":
             if len(a) < 3:
@@ -147,6 +148,9 @@ def main():
                 filters = " ".join(a[2::])
             elif a[1] == "quality":
                 qualities = [int(i) for i in a[2::]]
+            elif a[1] == "name":
+                # TODO: add filters by name
+                pass
 
         if a[0] == "bulk":
             ls = list(filter(None,[shortname.get(l, l) for l in a[1::]]))
