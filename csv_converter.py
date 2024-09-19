@@ -21,7 +21,6 @@ def re_tiers(tiers):
         re_s = "(^T%s[^@]+%s$)" % (k , "" if len(d[k]) == 0 else f"(@[{''.join(d[k])}]){'?' if contain_zero else ''}")
         re_l.append(re_s)
     return "|".join(re_l)
-    pass
 
 def regex_filter(val, filters):
     if val:
@@ -36,6 +35,7 @@ def regex_filter(val, filters):
 def convert(locations, filters, qualities):
     for v in locations:
         try:
+            os.makedirs("Databases", exist_ok=True)
             if not os.path.exists(f"{v}.db"):
                 continue
             print(f"Converting {v}.db...")
@@ -45,8 +45,7 @@ def convert(locations, filters, qualities):
             df = df[df.quality.isin(qualities)]
             df = df[df["id"].apply(regex_filter, filters=filters)]
             print(df)
-            df.to_csv(f'{v}.csv', index=False)
+            df.to_csv(f'Databases/{v}.csv', index=False)
         except Exception as e:
             print(e)
             continue
-

@@ -1,4 +1,3 @@
 *.db
-*.csv
+Databases/*
 __pycache__/*
-!items.csv
