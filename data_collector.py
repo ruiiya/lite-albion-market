@@ -61,7 +61,6 @@ def do_sell_order(parameters):
                     cur.execute("update Data set sell_min = ?, sell_min_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
                     print(f"[INFO:{PLAYER_LOCATION}] [SELL_ORDER] Update price {entry[0]} from {entry[3] or 0} to {price}")
                     db.commit()
-                    entry = cur.execute("select * from Data Where (id = ?)", (itemid,)).fetchone()
         print(f"[INFO:{PLAYER_LOCATION}] [SELL_ORDER] Done {len(data)} ingests")
     except Exception as e:
         print(e)
@@ -89,7 +88,6 @@ def do_buy_order(parameters):
                     cur.execute("update Data set buy_max = ?, buy_max_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
                     print(f"[INFO:{PLAYER_LOCATION}] [BUY_ORDER] Update price {entry[0]} from {entry[4] or 0} to {price}")
                     db.commit()
-                    entry = cur.execute("select * from Data Where (id = ?)", (itemid,)).fetchone()
         print(f"[INFO:{PLAYER_LOCATION}] [BUY_ORDER] Done {len(data)} ingests")
     except Exception as e:
         print(e)
@@ -142,9 +140,7 @@ def main():
                     conn.close()
 
         if a[0] == "set":
-            if len(a) < 2:
-                print("[ERROR] set: Unkown command")
-            elif a[1] == "tier":
+            if a[1] == "tier":
                 filters = " ".join(a[2::])
             elif a[1] == "quality":
                 qualities = [int(i) for i in a[2::]]
@@ -158,7 +154,7 @@ def main():
             ls = list(filter(None,[shortname.get(l, l) for l in a[1::]]))
             try:
                 if len(ls) == 0:
-                    print("[ERROR] set: Unkown command")
+                    print("[ERROR] bulk: Unkown command")
                 else:
                     df_bm = prepare_bm(filters, qualities)
                     df_rl = prepare_royal(ls[0], filters, qualities)

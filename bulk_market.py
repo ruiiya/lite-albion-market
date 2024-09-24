@@ -16,6 +16,8 @@ def re_tiers(tiers):
     d = {}
     for t in tl:
         tier, enchant = t.split(".")
+        if enchant is None:
+            enchant = [0,1,2,3,4]
         if tier in d:
             d[tier].append(enchant)
         else:
