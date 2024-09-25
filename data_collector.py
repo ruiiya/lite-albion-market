@@ -2,6 +2,7 @@ import sqlite3
 import photon
 import json
 from datetime import datetime, timezone
+from dateutil.parser import parse
 import os
 import csv_converter
 from bulk_market import prepare_bm, prepare_royal, compare
@@ -13,7 +14,12 @@ locations = {
     "3008": "Martlock",
     "4002": "FortSterling",
     "3005": "Caerleon",
-    "3003": "BlackMarket"
+    "3003": "BlackMarket",
+    "0301": "Thetford",
+    "1301": "Lymhurst",
+    "2301": "Bridgewatch",
+    "3301": "Martlock",
+    "4301": "FortSterling",
 }
 
 shortname = {
@@ -57,7 +63,15 @@ def do_sell_order(parameters):
                 db.commit()
                 print(f"[INFO:{PLAYER_LOCATION}] Add {itemid} to database")
             else:
-                if entry[3] is None or price < entry[3]:
+                if entry[3] is None:
+                    cur.execute("update Data set sell_min = ?, sell_min_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
+                    print(f"[INFO:{PLAYER_LOCATION}] [SELL_ORDER] Update price {entry[0]} to {price}")
+                    db.commit()
+                elif (datetime.now(timezone.utc) - parse(entry[5])).total_seconds() / 60 > 30:
+                    cur.execute("update Data set sell_min = ?, sell_min_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
+                    print(f"[INFO:{PLAYER_LOCATION}] [SELL_ORDER] Change outdated order {entry[0]}")
+                    db.commit()
+                elif entry[3] is None or price < entry[3]:
                     cur.execute("update Data set sell_min = ?, sell_min_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
                     print(f"[INFO:{PLAYER_LOCATION}] [SELL_ORDER] Update price {entry[0]} from {entry[3] or 0} to {price}")
                     db.commit()
@@ -84,7 +98,15 @@ def do_buy_order(parameters):
                 db.commit()
                 print(f"[INFO:{PLAYER_LOCATION}] Add {itemid} to database")
             else:
-                if entry[4] is None or price > entry[4]:
+                if entry[4] is None:
+                    cur.execute("update Data set buy_max = ?, buy_max_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
+                    print(f"[INFO:{PLAYER_LOCATION}] [BUY_ORDER] Update price {entry[0]} to {price}")
+                    db.commit()
+                elif (datetime.now(timezone.utc) - parse(entry[6])).total_seconds() / 60 > 30:
+                    cur.execute("update Data set buy_max = ?, buy_max_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
+                    print(f"[INFO:{PLAYER_LOCATION}] [BUY_ORDER] Change outdated order {entry[0]}")
+                    db.commit
+                elif price > entry[4]:
                     cur.execute("update Data set buy_max = ?, buy_max_datetime = ? where (id = ? and quality = ?)", (price, datetime.now(timezone.utc), itemid, quality))
                     print(f"[INFO:{PLAYER_LOCATION}] [BUY_ORDER] Update price {entry[0]} from {entry[4] or 0} to {price}")
                     db.commit()
