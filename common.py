@@ -25,7 +25,8 @@ shortname = {
     "lh": "Lymhurst",
     "fs": "FortSterling",
     "cl": "Caerleon",
-    "bm": "BlackMarket"
+    "bm": "BlackMarket",
+    "avg": "Average"
 }
 
 class Filter:

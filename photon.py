@@ -1,4 +1,3 @@
-import json
 import signal
 import sys
 import threading
@@ -15,7 +14,8 @@ class Photon:
         self.sniffing_thread.daemon = True
         self.sniffing_thread.start()
 
-        self.function_map = {}
+        self.function_request_map = {}
+        self.function_event_map = {}
 
         signal.signal(signal.SIGINT, self.handle_exit)
 
@@ -33,8 +33,11 @@ class Photon:
             except:
                 pass
 
-    def map(self, id, func):
-        self.function_map[id] = func
+    def map_request(self, id, func):
+        self.function_request_map[id] = func
+
+    def map_event(self, id, func):
+        self.function_event_map[id] = func
 
     def handle_exit(self, signum, frame):
         self.stop_sniffing.set()
@@ -45,11 +48,13 @@ class Photon:
         self.sniffing_thread.join()
 
     def on_event(self, data):
+        if data.parameters[252] in self.function_event_map:
+            self.function_event_map[data.parameters[252]](data.parameters)
         pass
 
     def on_request(self, data):
-        if data.parameters[253] in self.function_map:
-            self.function_map[data.parameters[253]](data.parameters)
+        if data.parameters[253] in self.function_request_map:
+            self.function_request_map[data.parameters[253]](data.parameters)
         pass
 
     def on_response(self, data):

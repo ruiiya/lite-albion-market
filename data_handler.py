@@ -31,3 +31,15 @@ def convert(locations, filter: Filter):
         except Exception as e:
             print(e)
             continue
+
+def delete_db(locations):
+    for v in locations:
+        try:
+            if not os.path.exists(f"{v}.db"):
+                continue
+            conn = sqlite3.connect(f"{v}.db", check_same_thread=False)
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Data")
+            conn.commit()
+        except Exception as e:
+            print(e)

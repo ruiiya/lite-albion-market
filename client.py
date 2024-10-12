@@ -1,5 +1,5 @@
 from common import shortname, locations, Filter
-import csv_converter
+import data_handler
 from bulk_market import prepare_bm, prepare_royal, compare
 
 def main():
@@ -13,8 +13,15 @@ def main():
             if a[0] == "csv":
                 ls = list(filter(None,[shortname.get(l, l) for l in a[1::]]))
                 if len(ls) == 0:
-                    ls = locations.values()
-                csv_converter.convert(ls, ao_filter)
+                    ls = list(set(locations.values()))
+                data_handler.convert(ls, ao_filter)  
+
+            if a[0] == "clear":
+                ls = list(filter(None,[shortname.get(l, l) for l in a[1::]]))       
+                if len(ls) == 0:
+                    ls = list(set(locations.values()))  
+                data_handler.delete_db(ls)
+                
 
             if a[0] == "set":
                 try:
@@ -47,7 +54,7 @@ def main():
                         print(dfqs[dfqs["diff_quick_sell"] > ao_filter.diff_show])
                         print(dfso[dfso["diff_sell_order"] > ao_filter.diff_show])
                 except Exception as e:
-                    print("[ERROR] bulk:",e)
+                    print("[ERROR] bulk: Unkown command - %s" % e)
 
             if a[0] == "exit":
                 break
