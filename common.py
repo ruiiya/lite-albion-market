@@ -16,6 +16,7 @@ locations = {
     "2301": "Bridgewatch",
     "3301": "Martlock",
     "4301": "FortSterling",
+    "5003": "Brecilien"
 }
 
 shortname = {
@@ -26,7 +27,8 @@ shortname = {
     "fs": "FortSterling",
     "cl": "Caerleon",
     "bm": "BlackMarket",
-    "avg": "Average"
+    "br": "Brecilien",
+    "avg": "Average",
 }
 
 class Filter:

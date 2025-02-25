@@ -3,7 +3,7 @@ import data_handler
 from bulk_market import prepare_bm, prepare_royal, compare
 
 def main():
-
+    print("[INFO] Start Client")
     ao_filter = Filter()
 
     while True:
@@ -47,10 +47,11 @@ def main():
                         df_bm = prepare_bm(ao_filter)
                         df_rl = prepare_royal(ls[0], ao_filter)
                         df = compare(df_bm, df_rl, ao_filter)
+                        df = df.sort_values(by="id", ascending=False)
                         dfqs = df[["name", "enchant", "sell_min_rl", "buy_max_bm", "diff_quick_sell", "quick_sell_desired"]].sort_values(
-                            by="diff_quick_sell",ascending=False)
+                            by="name",ascending=False)
                         dfso = df[["name", "enchant", "sell_min_rl", "sell_min_bm", "diff_sell_order", "sell_order_desired"]].sort_values(
-                            by="diff_sell_order",ascending=False)
+                            by="name",ascending=False)
                         print(dfqs[dfqs["diff_quick_sell"] > ao_filter.diff_show])
                         print(dfso[dfso["diff_sell_order"] > ao_filter.diff_show])
                 except Exception as e:

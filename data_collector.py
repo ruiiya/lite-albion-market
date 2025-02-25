@@ -62,7 +62,7 @@ def do_sell_order(parameters):
 def do_buy_order(parameters):
     global db_data_collector
     if db_data_collector is None:
-        print("[WARN] [SELL_ORDER] Unkown player location")
+        print("[WARN] [BUY_ORDER] Unkown player location")
         return
     data = parse_order(parameters[0])
     try:
@@ -143,6 +143,8 @@ def item_info(parameters):
 
 
 def main():
+    print("[INFO] Start Data Collector")
+    print("[INFO] Please zone to another map before start collecting data")
     global db_avg
     db_avg = sqlite3.connect(f"Average.db", check_same_thread=False)
     db_avg.execute(f"""
@@ -159,7 +161,7 @@ def main():
     p.map_request(75, do_sell_order)
     p.map_request(76, do_buy_order)
     p.map_request(2, join)
-    p.map_event(30, item_info)
+    # p.map_event(30, item_info)
 
     input()
 
