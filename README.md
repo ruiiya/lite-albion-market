@@ -1,13 +1,14 @@
-﻿# Lite Albion Market 3.0
+# Lite Albion Market 3.0
 
 A modular Albion Online market data collection and analysis tool.
 
 ## System Overview
 
-The system is divided into two main components:
+The system is divided into three main components:
 
 1. **Data Collector**: Captures market data from Albion Online
-2. **Market Application**: Analyzes and displays market data
+2. **Market Application (CLI)**: Command-line interface for analyzing market data
+3. **Market Application (GUI)**: Web-based interface for visualizing and analyzing market data
 
 ## Installation
 
@@ -34,9 +35,9 @@ The data collector will capture market data while you play Albion Online. It wil
 
 For best results, visit the marketplace in each city to collect current prices.
 
-### Market Application
+### Market Application (CLI)
 
-To analyze and view market data:
+To analyze and view market data in the command-line interface:
 
 ```bash
 run_market_app.bat
@@ -44,9 +45,25 @@ run_market_app.bat
 python market_app/main.py
 ```
 
-## Market Application Commands
+### Market Application (GUI)
 
-The market application supports the following commands:
+To use the web-based graphical interface:
+
+```bash
+run_gui.bat
+# OR
+python web/eel_app.py
+```
+
+The GUI provides an interactive interface with:
+- Market data visualization
+- Quick sell opportunity analysis
+- Sell order opportunity analysis
+- Various filtering options for tier, quality, and profit ratio
+
+## Market Application Commands (CLI)
+
+The command-line interface supports the following commands:
 
 | Command | Description |
 |---------|-------------|
@@ -57,6 +74,9 @@ The market application supports the following commands:
 | `set quality [quals]` | Set quality filter (e.g., '1 2 3') |
 | `set diff [num]` | Set minimum profit ratio (e.g., '1.3') |
 | `bulk [locations]` | Compare black market with royal cities |
+| `show` | Show current filter settings |
+| `show all` | Show data for all locations with current filters |
+| `show [locations]` | Show data for specified locations |
 | `exit` | Exit the application |
 
 ## Location Shortcuts
