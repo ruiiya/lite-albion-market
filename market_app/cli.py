@@ -4,6 +4,10 @@ Command-line interface for the Albion Online market application.
 import sys
 import os
 import pandas as pd
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -22,12 +26,12 @@ class MarketCLI:
         """Initialize the market CLI."""
         self.analyzer = MarketAnalyzer()
         self.filter = Filter()
-        print("[INFO] Market Application initialized")
-        print("[INFO] Using Market.db database with separate tables")
+        logger.info("Market Application initialized")
+        logger.info("Using Market.db database with separate tables")
     
     def run(self):
         """Run the CLI command loop."""
-        print("[INFO] Ready for commands. Type 'help' for available commands.")
+        logger.info("Ready for commands. Type 'help' for available commands.")
         
         while True:
             try:
@@ -52,25 +56,33 @@ class MarketCLI:
                     self._handle_set_command(args[1:])
                 elif command == "bulk":
                     self._handle_bulk_command(args[1:])
+                elif command == "show":
+                    self._handle_show_command(args[1:])
                 else:
-                    print(f"[ERROR] Unknown command: {command}")
+                    logger.error(f"Unknown command: {command}")
             
             except Exception as e:
-                print(f"[ERROR] {e}")
+                logger.error(f"Error: {str(e)}", exc_info=True)
     
     def _show_help(self):
         """Show help information."""
-        print("Available commands:")
-        print("  help                 - Show this help message")
-        print("  csv [locations]      - Export data to CSV files")
-        print("  clear [locations]    - Clear data for specified locations")
-        print("  set tier [tiers]     - Set tier filter (e.g., '4.0 5.1 6.2')")
-        print("  set quality [quals]  - Set quality filter (e.g., '1 2 3')")
-        print("  set diff [num]       - Set minimum profit ratio (e.g., '1.3')")
-        print("  bulk [locations]     - Compare black market with royal cities")
-        print("  exit                 - Exit the application")
-        print()
-        print("Location shortcuts:")
+        help_text = """Available commands:
+  help                 - Show this help message
+  csv [locations]      - Export data to CSV files
+  clear [locations]    - Clear data for specified locations
+  set tier [tiers]     - Set tier filter (e.g., '4.0 5.1 6.2')
+  set quality [quals]  - Set quality filter (e.g., '1 2 3')
+  set diff [num]       - Set minimum profit ratio (e.g., '1.3')
+  bulk [locations]     - Compare black market with royal cities
+  show                 - Show current filter settings
+  show [locations]     - Show market data for specified locations
+  show all             - Show market data for all locations
+  exit                 - Exit the application
+
+Location shortcuts:"""
+        print(help_text)
+        logger.debug("Help command executed")
+        
         for short, full in SHORTNAME.items():
             print(f"  {short} - {full}")
     
@@ -81,6 +93,7 @@ class MarketCLI:
         Args:
             args: Command arguments
         """
+        
         # Convert location shortcuts to full names
         locations = [SHORTNAME.get(loc, loc) for loc in args]
         
@@ -88,12 +101,12 @@ class MarketCLI:
         if not locations:
             locations = list(set(LOCATIONS.values()))
         
+        logger.info(f"CSV export requested for locations: {locations}")
+        
         for loc in locations:
             path = self.analyzer.export_location_to_csv(loc, self.filter)
             if path:
-                print(f"[INFO] Exported {loc} data to {path}")
-            else:
-                print(f"[INFO] No data to export for {loc}")
+                logger.info(f"Exported {loc} data to {path}")
     
     def _handle_clear_command(self, args):
         """
@@ -109,12 +122,10 @@ class MarketCLI:
         if not locations:
             locations = list(set(LOCATIONS.values()))
         
+        logger.info(f"Clear data requested for locations: {locations}")
+        
         for loc in locations:
             success = self.analyzer.clear_location_data(loc)
-            if success:
-                print(f"[INFO] Cleared data for {loc}")
-            else:
-                print(f"[INFO] No data found for {loc}")
     
     def _handle_set_command(self, args):
         """
@@ -124,7 +135,7 @@ class MarketCLI:
             args: Command arguments
         """
         if len(args) < 1:
-            print("[ERROR] Missing filter type. Use 'set tier', 'set quality', or 'set diff'")
+            logger.error("Missing filter type")
             return
             
         filter_type = args[0].lower()
@@ -133,7 +144,7 @@ class MarketCLI:
         if filter_type == "tier":
             # Set tier filter (e.g., "4.0 5.1")
             self.filter.set_tier(" ".join(filter_values))
-            print(f"[INFO] Set tier filter to: {self.filter.tiers}")
+            logger.info(f"Set tier filter to: {self.filter.tiers}")
             
         elif filter_type == "quality":
             # Set quality filter (e.g., "1 2 3")
@@ -142,9 +153,9 @@ class MarketCLI:
                 if not qualities:
                     qualities = [1, 2, 3, 4, 5]
                 self.filter.set_quality(qualities)
-                print(f"[INFO] Set quality filter to: {self.filter.qualities}")
+                logger.info(f"Set quality filter to: {self.filter.qualities}")
             except ValueError:
-                print("[ERROR] Quality values must be integers (1-5)")
+                logger.error("Quality values must be integers (1-5)")
                 
         elif filter_type == "diff":
             # Set minimum profit ratio (e.g., "1.3")
@@ -152,14 +163,14 @@ class MarketCLI:
                 if filter_values:
                     diff_value = float(filter_values[0])
                     self.filter.set_diff(diff_value)
-                    print(f"[INFO] Set minimum profit ratio to: {self.filter.diff_show}")
+                    logger.info(f"Set minimum profit ratio to: {self.filter.diff_show}")
                 else:
-                    print(f"[INFO] Current minimum profit ratio: {self.filter.diff_show}")
+                    logger.info(f"Current minimum profit ratio: {self.filter.diff_show}")
             except ValueError:
-                print("[ERROR] Diff value must be a number")
+                logger.error("Diff value must be a number")
                 
         else:
-            print(f"[ERROR] Unknown filter type: {filter_type}")
+            logger.error(f"Unknown filter type: {filter_type}")
     
     def _handle_bulk_command(self, args):
         """
@@ -170,22 +181,22 @@ class MarketCLI:
         """
         # Need at least one royal city to compare
         if not args:
-            print("[ERROR] Please specify at least one royal city for comparison")
+            logger.error("No royal city specified for comparison")
             return
             
         # Convert location shortcuts to full names
         locations = [SHORTNAME.get(loc, loc) for loc in args]
+        logger.info(f"Bulk comparison requested for locations: {locations}")
         
         # For each royal city, compare with black market
         for loc in locations:
             if loc == "BlackMarket" or loc == "bm":
                 continue  # Skip direct black market comparison
                 
-            print(f"[INFO] Comparing {loc} with BlackMarket...")
+            logger.info(f"Comparing {loc} with BlackMarket...")
             comparison = self.analyzer.compare_markets(loc, self.filter)
             
             if comparison.empty:
-                print(f"[INFO] No comparable data between {loc} and BlackMarket")
                 continue
                 
             # Sort results by item name
@@ -203,19 +214,63 @@ class MarketCLI:
             
             # Display results
             if not df_qs.empty:
+                logger.info(f"Found {len(df_qs)} quick sell opportunities for {loc}")
                 print("\nQuick Sell Opportunities (Royal City → Black Market Buy Orders):")
                 pd.set_option('display.max_rows', None)
                 print(df_qs)
                 
             if not df_so.empty:
+                logger.info(f"Found {len(df_so)} sell order opportunities for {loc}")
                 print("\nSell Order Opportunities (Royal City → Black Market Sell Orders):")
                 pd.set_option('display.max_rows', None)
                 print(df_so)
+
+    def _handle_show_command(self, args):
+        """
+
+        Handle the show command for displaying market data.
+        
+        Args:
+            args: Command arguments
+        """
+        if len(args) < 1:
+            # show current filter settings
+            print(f"Current filter settings:\n"
+                  f"    Tier: {self.filter.get_tier()}\n"
+                  f"    Quality: {self.filter.get_quality()}\n"
+                  f"    Minimum Price Difference: {self.filter.get_diff()}")
+            return
+        
+        if args[0].lower() == "all":
+            # Show data for all locations
+            logger.info("Showing data for all locations")
+            # Show data for all locations
+            locations = list(set(LOCATIONS.values()))  # Use set to remove duplicates
+            for loc in locations:
+                df = self.analyzer.get_location_data(loc, self.filter)
+                if df.empty:
+                    continue
                 
-            if df_qs.empty and df_so.empty:
-                print(f"[INFO] No profitable opportunities found between {loc} and BlackMarket")
-    
+                # Display the data
+                print(f"\nData for {loc}:")
+                print(df)
+        else:
+            for loc in args:
+                loc = SHORTNAME.get(loc, loc)
+                
+                # Get data for the specified location
+                df = self.analyzer.get_location_data(loc, self.filter)
+                
+                if df.empty:
+                    continue
+                
+                # Display the data
+                print(f"\nData for {loc}:")
+                print(df)
+
+
     def close(self):
         """Close the analyzer and clean up resources."""
+        logger.info("Closing CLI resources")
         if self.analyzer:
             self.analyzer.close()

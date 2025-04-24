@@ -25,6 +25,18 @@ class Filter:
     def set_diff(self, diff):
         """Set the minimum price difference to show."""
         self.diff_show = diff
+
+    def get_tier(self):
+        """Get the current tier filter."""
+        return self.tiers
+    
+    def get_quality(self):
+        """Get the current quality filter."""
+        return self.qualities
+
+    def get_diff(self):
+        """Get the current minimum price difference."""
+        return self.diff_show
         
     def __str__(self):
         """String representation of the filter."""

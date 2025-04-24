@@ -7,6 +7,16 @@ import os
 from datetime import datetime, timezone
 from .constants import DATABASE_PATH, DATABASE_AVG_PATH, EXPORT_DIR
 from .filter import regex_filter
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 
 class MarketDatabase:
     """Handles database operations for the market data system."""
@@ -78,7 +88,7 @@ class MarketDatabase:
                 f"INSERT INTO {location}(id, quality, sell_min, sell_min_datetime, enchant) VALUES(?, ?, ?, ?, ?)", 
                 (item_id, quality, price, datetime.now(timezone.utc), enchant)
             )
-            print(f"[INFO] Added new sell order for item {item_id} at location {location} with price {price}.")
+            logger.info(f"Added new sell order for item {item_id} at location {location} with price {price}.")
         else:
             # Update existing record if price is lower or data is outdated
             if entry[3] is None or price < entry[3] or \
@@ -88,7 +98,7 @@ class MarketDatabase:
                     (price, datetime.now(timezone.utc), item_id, quality)
                 )
                 
-                print(f"[INFO] Updated sell order for item {item_id} at location {location} with price {price}.")
+                logger.info(f"Updated sell order for item {item_id} at location {location} with price {price}.")
         
         conn.commit()
     
@@ -119,7 +129,7 @@ class MarketDatabase:
                 f"INSERT INTO {location}(id, quality, buy_max, buy_max_datetime, enchant) VALUES(?, ?, ?, ?, ?)", 
                 (item_id, quality, price, datetime.now(timezone.utc), enchant)
             )
-            print(f"[INFO] Added new buy order for item {item_id} at location {location} with price {price}.")
+            logger.info(f"Added new buy order for item {item_id} at location {location} with price {price}.")
         else:
             # Update existing record if price is higher or data is outdated
             if entry[4] is None or price > entry[4] or \
@@ -129,7 +139,7 @@ class MarketDatabase:
                     (price, datetime.now(timezone.utc), item_id, quality)
                 )
                 
-                print(f"[INFO] Updated buy order for item {item_id} at location {location} with price {price}.")
+                logger.info(f"Updated buy order for item {item_id} at location {location} with price {price}.")
         
         conn.commit()
     
@@ -150,13 +160,11 @@ class MarketDatabase:
         cursor = conn.cursor()
         cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{location}'")
         if not cursor.fetchone():
-            print(f"No table found for {location}")
             return pd.DataFrame()
         
         # Get the data
         df = pd.read_sql_query(f"SELECT * FROM {location}", conn)
         if df.empty:
-            print(f"No data found for {location}")
             return pd.DataFrame()
         
         # Apply filtering if provided
@@ -203,10 +211,11 @@ class MarketDatabase:
         cursor = conn.cursor()
         cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{location}'")
         if not cursor.fetchone():
-            print(f"No table found for {location}")
+            logger.info(f"No table found for {location}")
             return False
         
         # Delete the data
         cursor.execute(f"DELETE FROM {location}")
         conn.commit()
+        logger.info(f"Deleted all data for location {location}.")
         return True
